@@ -294,7 +294,18 @@ async function logout() {
 </script>
 
 <style>
-.admin-page { padding: 16px; }
+.admin-page { 
+  padding: 16px; 
+  /* Element Plus vars to adapt dark mode */
+  --el-bg-color: var(--panel);
+  --el-fill-color-blank: var(--panel);
+  --el-color-white: var(--panel);
+  --el-text-color-primary: var(--fg);
+  --el-text-color-regular: var(--fg);
+  --el-border-color: var(--border);
+  --el-border-color-light: var(--border);
+  --el-border-color-lighter: var(--border);
+}
 .admin-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .sider-toggle { display: none; border: 1px solid var(--border); background: var(--panel); color: var(--fg); height: 32px; width: 36px; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; }
 .sider-toggle:hover { background: color-mix(in oklab, var(--panel) 90%, var(--fg) 10%); }
@@ -310,7 +321,7 @@ async function logout() {
 .menu-item-inner { display: flex; align-items: center; justify-content: flex-start; width: 100%; }
 .menu-item-inner .left { display: inline-flex; align-items: center; gap: 8px; }
 .menu-item-inner .el-icon { font-size: 16px; }
-.admin-menu .el-menu-item.is-active { color: #0b1219; background: color-mix(in oklab, var(--fg) 14%, transparent); }
+.admin-menu .el-menu-item.is-active { color: #265df5; background: color-mix(in oklab, var(--fg) 14%, transparent); }
 .admin-menu .el-menu-item:hover { background: color-mix(in oklab, var(--fg) 10%, transparent); }
 .panel { max-width: 820px; }
 @media (max-width: 920px) {
@@ -337,6 +348,66 @@ async function logout() {
 .logout-btn:active { transform: translateY(1px); }
 .logout-btn .icon { font-size: 14px; line-height: 1; margin-right: 6px; }
 .logout-btn .text { font-weight: 600; }
+
+/* Dark/Light adapt for Element Plus controls */
+.admin-page :deep(.el-form-item__label) { color: var(--fg); pointer-events: none; }
+.admin-page :deep(.el-input__wrapper),
+.admin-page :deep(.el-textarea__inner) {
+  background: var(--panel) !important;
+  border: 1px solid var(--border);
+  box-shadow: none;
+  color: var(--fg);
+}
+.admin-page :deep(.el-input__wrapper:hover) { border-color: var(--border); box-shadow: none; }
+/* correct focus states */
+.admin-page :deep(.el-input__wrapper.is-focus),
+.admin-page :deep(.el-textarea__inner:focus) {
+  border-color: color-mix(in oklab, var(--fg) 40%, var(--border));
+  box-shadow: none;
+}
+.admin-page :deep(.el-input__inner) { color: var(--fg); }
+.admin-page :deep(.el-switch__core) { border-color: var(--border); background: var(--panel); }
+.admin-page :deep(.el-switch.is-checked .el-switch__core) { background: color-mix(in oklab, var(--fg) 25%, #3b82f6 10%); }
+.admin-page :deep(.el-select .el-select__wrapper) { background: var(--panel); border: 1px solid var(--border); box-shadow: none; color: var(--fg); }
+.admin-page :deep(.el-upload),
+.admin-page :deep(.el-upload-dragger) { background: var(--panel); border-color: var(--border); color: var(--fg); }
+.admin-page :deep(.el-button) { color: var(--fg); border-color: var(--border); background: var(--panel); }
+.admin-page :deep(.el-button:focus) { outline: none; }
+.admin-page :deep(.el-button:focus-visible) { outline: 2px solid color-mix(in oklab, var(--fg) 40%, #3b82f6 10%); outline-offset: 1px; }
+.admin-page :deep(.el-button:active) { transform: translateY(1px); }
+.admin-page :deep(.el-button:hover) { background: color-mix(in oklab, var(--fg) 8%, var(--panel)); border-color: color-mix(in oklab, var(--fg) 20%, var(--border)); }
+.admin-page :deep(.el-button.is-disabled),
+.admin-page :deep(.is-disabled.el-button) { color: var(--muted); background: color-mix(in oklab, var(--panel) 96%, var(--fg) 4%); border-color: var(--border); }
+.admin-page :deep(.el-button.is-plain) { background: var(--panel); }
+.admin-page :deep(.el-button--primary) { border-color: transparent; }
+.admin-page :deep(.el-message) { background: var(--panel); border: 1px solid var(--border); color: var(--fg); }
+
+.admin-page :deep(.el-input.is-disabled .el-input__wrapper),
+.admin-page :deep(.is-disabled .el-input__wrapper) { background: color-mix(in oklab, var(--panel) 96%, var(--fg) 4%); }
 </style>
 
-
+<style>
+/* Sidebar dark-mode variables and overrides (scoped) */
+.admin-sider .admin-menu {
+  /* Bind Element Plus menu variables to site theme vars */
+  --el-menu-text-color: var(--fg);
+  --el-menu-active-color: var(--fg);
+  --el-menu-bg-color: var(--panel);
+  --el-menu-hover-bg-color: color-mix(in oklab, var(--fg) 10%, transparent);
+  --el-menu-border-color: var(--border);
+}
+.admin-sider :deep(.el-menu) { background: var(--panel); border-color: var(--border); }
+.admin-sider :deep(.el-menu-item),
+.admin-sider :deep(.el-sub-menu__title) { color: var(--fg); }
+.admin-sider :deep(.el-menu-item .el-icon),
+.admin-sider :deep(.el-sub-menu__title .el-icon) { color: var(--fg); }
+.admin-sider :deep(.el-menu-item.is-active) {
+  background: color-mix(in oklab, var(--fg) 12%, transparent);
+  color: var(--fg);
+}
+.admin-sider :deep(.el-menu-item.is-active .el-icon) { color: var(--fg); }
+.admin-sider :deep(.el-menu-item:not(.is-active):hover) {
+  background: color-mix(in oklab, var(--fg) 10%, transparent);
+  color: var(--fg);
+}
+</style>

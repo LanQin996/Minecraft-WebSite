@@ -63,6 +63,17 @@ async function onSubmit() {
 .admin-auth { display: flex; align-items: center; justify-content: center; min-height: 60vh; padding: 24px; }
 .card { width: 100%; max-width: 420px; border: 1px solid var(--border); background: var(--panel); border-radius: 12px; padding: 20px 16px; }
 .title { margin: 0 0 12px; font-size: 20px; text-align: center; }
+
+/* Force Element Plus fields to follow dark theme */
+.admin-auth :deep(.el-form-item__label) { color: var(--fg); }
+.admin-auth :deep(.el-input__wrapper),
+.admin-auth :deep(.el-textarea__inner) {
+  background: var(--panel) !important;
+  border: 1px solid var(--border);
+  box-shadow: none;
+  color: var(--fg);
+}
+.admin-auth :deep(.el-input__inner) { color: var(--fg); }
 </style>
 
 
