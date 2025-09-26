@@ -20,6 +20,11 @@
               <span class="left"><el-icon><Setting /></el-icon><span>站点信息</span></span>
             </div>
           </el-menu-item>
+          <el-menu-item index="modules">
+            <div class="menu-item-inner">
+              <span class="left"><el-icon><Setting /></el-icon><span>功能模块</span></span>
+            </div>
+          </el-menu-item>
           <el-menu-item index="hero">
             <div class="menu-item-inner">
               <span class="left"><el-icon><PictureFilled /></el-icon><span>首页横幅</span></span>
@@ -42,6 +47,24 @@
             <el-form-item label="Favicon URL"><el-input v-model="site.favicon_url" /></el-form-item>
             <el-form-item>
               <el-button type="primary" :loading="saving.site" @click="saveSite">保存</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+
+        <div v-show="active === 'modules'" class="panel">
+          <el-form :model="modules" :label-width="120" ref="modulesRef" class="form">
+            <el-form-item label="启用 LiteBans">
+              <el-switch v-model="modules.enable_litebans" />
+            </el-form-item>
+            <el-form-item label="LiteBans 主机"><el-input v-model="modules.lb_host" placeholder="localhost" /></el-form-item>
+            <el-form-item label="LiteBans 端口"><el-input v-model.number="modules.lb_port" type="number" placeholder="3306" /></el-form-item>
+            <el-form-item label="LiteBans 用户名"><el-input v-model="modules.lb_user" /></el-form-item>
+            <el-form-item label="LiteBans 密码"><el-input v-model="modules.lb_password" type="password" show-password /></el-form-item>
+            <el-form-item label="LiteBans 数据库"><el-input v-model="modules.lb_database" /></el-form-item>
+            <el-form-item label="表前缀"><el-input v-model="modules.lb_prefix" placeholder="litebans" /></el-form-item>
+            <el-form-item>
+              <el-button style="margin-left:8px" :loading="testingConn" @click="testConnection">测试连接</el-button>
+              <el-button type="primary" :disabled="!connOk" :loading="saving.modules" @click="saveModules">保存</el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -77,6 +100,11 @@
             <span class="left"><el-icon><Setting /></el-icon><span>站点信息</span></span>
           </div>
         </el-menu-item>
+        <el-menu-item index="modules">
+          <div class="menu-item-inner">
+            <span class="left"><el-icon><Setting /></el-icon><span>功能模块</span></span>
+          </div>
+        </el-menu-item>
         <el-menu-item index="hero">
           <div class="menu-item-inner">
             <span class="left"><el-icon><PictureFilled /></el-icon><span>首页横幅</span></span>
@@ -102,13 +130,13 @@ definePageMeta({ middleware: 'auth-admin' })
 type MeResp = { ok: true; username: string } | { ok: false }
 const me = await $fetch<MeResp>('/api/admin/me', { headers: process.server ? useRequestHeaders(['cookie']) : undefined }).catch(() => ({ ok: false as const }))
 
-const active = ref<'site' | 'hero' | 'profile'>('site')
+const active = ref<'site' | 'hero' | 'profile' | 'modules'>('site')
 const drawerOpen = ref(false)
 function onSelect(key: string) {
   active.value = key as any
   if (drawerOpen.value) drawerOpen.value = false
 }
-const saving = reactive({ site: false, hero: false, profile: false })
+const saving = reactive({ site: false, hero: false, profile: false, modules: false })
 
 // Site tab
 const siteRef = ref<FormInstance>()
@@ -190,6 +218,65 @@ async function saveProfile() {
       saving.profile = false
     }
   })
+}
+
+// Modules tab
+const modulesRef = ref<FormInstance>()
+const { data: modulesData, refresh: refreshModules } = await useAsyncData('admin-modules', () => $fetch('/api/admin/modules', { headers: process.server ? useRequestHeaders(['cookie']) : undefined }))
+const modules = reactive<{ enable_litebans: boolean; lb_host: string; lb_port: number; lb_user: string; lb_password: string; lb_database: string; lb_prefix: string }>({
+  enable_litebans: !!(modulesData.value as any)?.enable_litebans,
+  lb_host: (modulesData.value as any)?.lb_host || 'localhost',
+  lb_port: Number((modulesData.value as any)?.lb_port || 3306),
+  lb_user: (modulesData.value as any)?.lb_user || '',
+  lb_password: (modulesData.value as any)?.lb_password || '',
+  lb_database: (modulesData.value as any)?.lb_database || '',
+  lb_prefix: (modulesData.value as any)?.lb_prefix || 'litebans'
+})
+watch(modulesData, (v: any) => { if (!v) return; modules.enable_litebans = !!v.enable_litebans; modules.lb_host = v.lb_host; modules.lb_port = Number(v.lb_port); modules.lb_user = v.lb_user; modules.lb_password = v.lb_password; modules.lb_database = v.lb_database; modules.lb_prefix = v.lb_prefix })
+// connection test state
+const connOk = ref(false)
+watch(modules, () => { connOk.value = false }, { deep: true })
+async function saveModules() {
+  saving.modules = true
+  try {
+    await $fetch('/api/admin/modules', { method: 'PUT', body: modules })
+    await refreshModules()
+    ElMessage.success('已保存')
+  } catch (e: any) {
+    ElMessage.error(e?.data?.statusMessage || '保存失败')
+  } finally {
+    saving.modules = false
+  }
+}
+
+const testingConn = ref(false)
+async function testConnection() {
+  testingConn.value = true
+  try {
+    const resp = await $fetch<{ ok: boolean; tableExists?: boolean; error?: string }>(
+      '/api/admin/modules.test', { method: 'POST', body: modules }
+    )
+    if (resp.ok) {
+      connOk.value = !!resp.tableExists
+      if (resp.tableExists) {
+        if ((resp as any).matched) {
+          ElMessage.success(`连接成功，检测到表：${(resp as any).matched}`)
+        } else {
+          ElMessage.success('连接成功，已检测到表存在')
+        }
+      } else {
+        ElMessage.warning('连接成功，但未检测到封禁表（请检查前缀）')
+      }
+    } else {
+      connOk.value = false
+      ElMessage.error(resp.error || '连接失败')
+    }
+  } catch (e: any) {
+    connOk.value = false
+    ElMessage.error(e?.data?.statusMessage || '连接失败')
+  } finally {
+    testingConn.value = false
+  }
 }
 
 // logout

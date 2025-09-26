@@ -9,6 +9,7 @@
         <div class="spacer"></div>
         <nav class="nav">
           <NuxtLink to="/">首页</NuxtLink>
+          <NuxtLink v-if="modules?.enable_litebans" to="/bans">封禁</NuxtLink>
           <NuxtLink to="/admin/login">后台</NuxtLink>
         </nav>
         <button class="theme-toggle" @click="toggleTheme" :aria-label="`切换到${theme === 'light' ? '深色' : '浅色'}模式`">
@@ -40,6 +41,7 @@ const route = useRoute()
 const isHome = computed(() => route.path === '/')
 const { data } = await useAsyncData('hero-layout', () => $fetch<{ title: string; subtitle: string; bg_url: string }>('/api/hero'))
 const { data: site } = await useAsyncData('site-settings', () => $fetch<{ site_title: string; site_subtitle: string; site_description: string; logo_url: string; favicon_url: string }>('/api/site'))
+const { data: modules } = await useAsyncData('modules-flags', () => $fetch<{ enable_litebans: boolean }>('/api/modules'))
 const hero = computed(() => data?.value)
 const siteSettings = computed(() => site?.value)
 
