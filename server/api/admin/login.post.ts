@@ -5,7 +5,15 @@ import { setCookie } from 'h3'
 const COOKIE_NAME = 'mc_admin_v2'
 const COOKIE_MAX_AGE = 60 * 60 * 4
 
-interface LoginBody { username?: string; password?: string }
+interface LoginBody {
+	username?: string;
+	password?: string;
+	// keep optional fields from frontend but ignore them on server
+	lot_number?: string;
+	captcha_output?: string;
+	pass_token?: string;
+	gen_time?: string;
+}
 
 export default defineEventHandler(async (event: H3Event) => {
 	const { username = '', password = '' } = (await readBody(event)) as LoginBody

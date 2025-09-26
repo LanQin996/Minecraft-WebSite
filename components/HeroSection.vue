@@ -15,4 +15,19 @@
 defineProps<{ hero: { title: string; subtitle: string; bg_url: string } }>()
 </script>
 
+<style>
+.hero .title {
+  /* 移动端到桌面端自适应更大字号 */
+  font-size: clamp(32px, 6vw, 56px);
+  line-height: 1.15;
+  margin: 0 0 12px;
+}
+
+.hero .subtitle {
+  font-size: clamp(14px, 2.2vw, 18px);
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+</style>
+
 

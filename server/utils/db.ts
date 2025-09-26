@@ -49,9 +49,22 @@ export async function ensureSchema(): Promise<void> {
 			site_subtitle VARCHAR(255) NOT NULL,
 			site_description TEXT NOT NULL,
 			logo_url VARCHAR(512) NOT NULL,
-			favicon_url VARCHAR(512) NOT NULL
+			favicon_url VARCHAR(512) NOT NULL,
+			footer VARCHAR(512) NOT NULL DEFAULT ''
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 	`)
+	// ensure footer column exists for existing installations
+	try {
+		await p.query(`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS footer VARCHAR(512) NOT NULL DEFAULT ''`)
+	} catch (e) {
+		// ignore if not supported; try a fallback check
+		try {
+			const [cols] = await p.query<RowDataPacket[]>(`SHOW COLUMNS FROM site_settings LIKE 'footer'`)
+			if ((cols as any[]).length === 0) {
+				await p.query(`ALTER TABLE site_settings ADD COLUMN footer VARCHAR(512) NOT NULL DEFAULT ''`)
+			}
+		} catch {}
+	}
 	await p.query(`
 		CREATE TABLE IF NOT EXISTS modules_settings (
 			id INT PRIMARY KEY CHECK (id = 1),
@@ -65,9 +78,9 @@ export async function ensureSchema(): Promise<void> {
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 	`)
 	// seed hero row if missing
-	await p.query(`INSERT IGNORE INTO hero_settings (id, title, subtitle, bg_url) VALUES (1, '我的世界服务器官网', '欢迎来到我们的服务器，一起开启新的冒险！', '/minecraft-hero.jpg')`)
+	await p.query(`INSERT IGNORE INTO hero_settings (id, title, subtitle, bg_url) VALUES (1, '我的世界服务器官网', '欢迎来到我们的服务器，一起开启新的冒险！', 'https://cdn.jsdu.cn/opdav/20250918/80fec3ca1133b1ef52d4d33604dd99bd.png')`)
 	// seed site settings row if missing
-	await p.query(`INSERT IGNORE INTO site_settings (id, site_title, site_subtitle, site_description, logo_url, favicon_url) VALUES (1, 'Minecraft 服务器', '一起探索方块世界', '这是一个基于 Nuxt 的 Minecraft 服务器官网后台演示。', '/logo.png', '/favicon.ico')`)
+	await p.query(`INSERT IGNORE INTO site_settings (id, site_title, site_subtitle, site_description, logo_url, favicon_url, footer) VALUES (1, 'Minecraft 服务器', '一起探索方块世界', '这是一个基于 Nuxt 的 Minecraft 服务器官网后台演示。', '/logo.png', '/favicon.ico', '')`)
 	// seed modules row if missing
 	await p.query(`INSERT IGNORE INTO modules_settings (id, enable_litebans, lb_host, lb_port, lb_user, lb_password, lb_database, lb_prefix) VALUES (1, 0, 'localhost', 3306, '', '', '', 'litebans')`)
 	// always ensure default admin
@@ -122,20 +135,21 @@ export async function updateHero(data: HeroSettings): Promise<void> {
 	await p.execute('UPDATE hero_settings SET title = ?, subtitle = ?, bg_url = ? WHERE id = 1', [data.title, data.subtitle, data.bg_url])
 }
 
-export interface SiteSettings { site_title: string; site_subtitle: string; site_description: string; logo_url: string; favicon_url: string }
+export interface SiteSettings { site_title: string; site_subtitle: string; site_description: string; logo_url: string; favicon_url: string; footer: string }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
 	await ensureSchema()
 	const p = getPool()
-	const [rows] = await p.execute<RowDataPacket[]>(`SELECT site_title, site_subtitle, site_description, logo_url, favicon_url FROM site_settings WHERE id = 1`)
-	if (rows.length === 0) return { site_title: '', site_subtitle: '', site_description: '', logo_url: '', favicon_url: '' }
+	const [rows] = await p.execute<RowDataPacket[]>(`SELECT site_title, site_subtitle, site_description, logo_url, favicon_url, footer FROM site_settings WHERE id = 1`)
+	if (rows.length === 0) return { site_title: '', site_subtitle: '', site_description: '', logo_url: '', favicon_url: '', footer: '' }
 	const r = rows[0]
 	return {
 		site_title: String(r.site_title),
 		site_subtitle: String(r.site_subtitle),
 		site_description: String(r.site_description),
 		logo_url: String(r.logo_url),
-		favicon_url: String(r.favicon_url)
+		favicon_url: String(r.favicon_url),
+		footer: String(r.footer || '')
 	}
 }
 
@@ -143,11 +157,10 @@ export async function updateSiteSettings(data: SiteSettings): Promise<void> {
 	await ensureSchema()
 	const p = getPool()
 	await p.execute(
-		`UPDATE site_settings SET site_title = ?, site_subtitle = ?, site_description = ?, logo_url = ?, favicon_url = ? WHERE id = 1`,
-		[data.site_title, data.site_subtitle, data.site_description, data.logo_url, data.favicon_url]
+		`UPDATE site_settings SET site_title = ?, site_subtitle = ?, site_description = ?, logo_url = ?, favicon_url = ?, footer = ? WHERE id = 1`,
+		[data.site_title, data.site_subtitle, data.site_description, data.logo_url, data.favicon_url, data.footer || '']
 	)
 }
-
 
 export interface ModulesSettings {
 	enable_litebans: 0 | 1

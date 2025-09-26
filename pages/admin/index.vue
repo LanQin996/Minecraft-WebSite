@@ -45,6 +45,7 @@
             <el-form-item label="简介"><el-input v-model="site.site_description" type="textarea" :rows="4" /></el-form-item>
             <el-form-item label="Logo URL"><el-input v-model="site.logo_url" /></el-form-item>
             <el-form-item label="Favicon URL"><el-input v-model="site.favicon_url" /></el-form-item>
+            <el-form-item label="底部版权"><el-input v-model="site.footer" placeholder="例如：© 2025 Minecraft Server · 保留所有权利" /></el-form-item>
             <el-form-item>
               <el-button type="primary" :loading="saving.site" @click="saveSite">保存</el-button>
             </el-form-item>
@@ -146,7 +147,8 @@ const site = reactive({
   site_subtitle: siteData.value?.site_subtitle || '',
   site_description: siteData.value?.site_description || '',
   logo_url: siteData.value?.logo_url || '',
-  favicon_url: siteData.value?.favicon_url || ''
+  favicon_url: siteData.value?.favicon_url || '',
+  footer: siteData.value?.footer || ''
 })
 watch(siteData, (v: any) => { if (!v) return; Object.assign(site, v) })
 const siteRules = reactive<FormRules>({

@@ -4,5 +4,11 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   pages: true,
   css: ['@/assets/global.css'],
-  modules: ['@element-plus/nuxt']
+  modules: ['@element-plus/nuxt'],
+  runtimeConfig: {
+    geetestKey: process.env.GEETEST_KEY || '',
+    public: {
+      geetestId: process.env.GEETEST_ID || ''
+    }
+  }
 })

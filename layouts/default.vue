@@ -26,7 +26,11 @@
 
     <footer class="site-footer">
       <div class="container">
-        <p>© {{ new Date().getFullYear() }} Minecraft Server · 保留所有权利</p>
+        <p>
+          {{ siteSettings?.footer && siteSettings.footer.trim() !== ''
+            ? siteSettings.footer
+            : `© ${new Date().getFullYear()} Minecraft Server · 保留所有权利` }}
+        </p>
       </div>
     </footer>
   </div>
@@ -40,7 +44,7 @@ import HeroSection from '~/components/HeroSection.vue'
 const route = useRoute()
 const isHome = computed(() => route.path === '/')
 const { data } = await useAsyncData('hero-layout', () => $fetch<{ title: string; subtitle: string; bg_url: string }>('/api/hero'))
-const { data: site } = await useAsyncData('site-settings', () => $fetch<{ site_title: string; site_subtitle: string; site_description: string; logo_url: string; favicon_url: string }>('/api/site'))
+const { data: site } = await useAsyncData('site-settings', () => $fetch<{ site_title: string; site_subtitle: string; site_description: string; logo_url: string; favicon_url: string; footer?: string }>('/api/site'))
 const { data: modules } = await useAsyncData('modules-flags', () => $fetch<{ enable_litebans: boolean }>('/api/modules'))
 const hero = computed(() => data?.value)
 const siteSettings = computed(() => site?.value)
